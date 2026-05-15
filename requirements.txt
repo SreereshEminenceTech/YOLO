@@ -1,4 +1,0 @@
-ultralytics
-supervision
-opencv-python-headless
-numpy
