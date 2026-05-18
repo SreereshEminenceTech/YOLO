@@ -79,7 +79,7 @@ class FaceDetector:
 
         pt_paths = [
             self._model_path,
-            os.path.join(os.path.dirname(__file__), "..", "models", "best_v2.pt"),
+            os.path.join(os.path.dirname(__file__), "..", "models", "best.pt"),
         ]
 
         for path in pt_paths:
