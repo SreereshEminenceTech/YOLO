@@ -155,14 +155,7 @@ with col_main:
         mode=WebRtcMode.SENDRECV,
         rtc_configuration=RTC_CONFIGURATION,
         video_processor_factory=YOLOVideoProcessor,
-        media_stream_constraints={
-            "video": {
-                "width": {"ideal": 640},
-                "height": {"ideal": 480},
-                "frameRate": {"ideal": 15, "max": 20},
-            },
-            "audio": False,
-        },
+        media_stream_constraints={"video": True, "audio": False},
         async_processing=True,
     )
 
