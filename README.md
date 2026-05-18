@@ -10,7 +10,7 @@ Real-time multi-face detection powered by **YOLOv8** and **Streamlit WebRTC**.
 -  **Privacy Mode** — Toggle face blurring while still counting detections
 -  **Session Logging** — Timestamped detection log with confidence and FPS
 -  **CSV Export** — Download session data for analysis
--  **Premium Dark UI** — Glassmorphism dashboard with live metrics
+-  **Premium Dark UI** — Glassmorphism dashboard with live metrics.
 
 ## Quick Start (Local)
 
