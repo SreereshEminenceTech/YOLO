@@ -27,8 +27,8 @@ from ui.components import render_left_panel, render_right_panel, render_metrics_
 
 # ─── Page Configuration ───────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="SentinalFace_Detection",
-    page_icon="",
+    page_title="OmniSight Face Detection",
+    page_icon="👁️",
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items={
@@ -93,30 +93,23 @@ class YOLOVideoProcessor(VideoProcessorBase):
             self._privacy_mode = value
 
     def recv(self, frame: av.VideoFrame) -> av.VideoFrame:
-        # Convert to OpenCV format
         img = frame.to_ndarray(format="bgr24")
-
-        # Record frame timing
         self.fps_tracker.tick()
         current_fps = self.fps_tracker.get_fps()
 
-        # Run detection
         detections = self.detector.detect_faces(img)
 
-        # Calculate average confidence
         if detections:
             avg_conf = sum(d.confidence for d in detections) / len(detections)
         else:
             avg_conf = 0.0
 
-        # Log data
         self.logger.log(
             face_count=len(detections),
             avg_confidence=avg_conf,
             fps=current_fps,
         )
 
-        # Annotate frame
         annotated = self.detector.annotate_frame(
             frame=img,
             detections=detections,
@@ -140,82 +133,69 @@ RTC_CONFIGURATION = {
 st.markdown(
     """
     <div class="app-header">
-        <h1>SentinalFace Detection</h1>
+        <h1>OmniSight Face Detection</h1>
         <p>Enterprise Real-time Face Detection Platform</p>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-# ─── Top Navigation Tabs ─────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4 = st.tabs(["Dashboard", "Real-time Detection", "Analytics", "Settings"])
 
-with tab2:
-    # ─── 3-Column Layout ────────────────────────────────────────────────────────
-    # Proportions roughly match Sample 2: left panel (1), main video (2.5), right panel (1)
-    col_left, col_main, col_right = st.columns([1, 2.5, 1], gap="medium")
+# ─── 3-Column Layout ─────────────────────────────────────────────────────────
+col_left, col_main, col_right = st.columns([1, 2.5, 1], gap="medium")
 
-    # ── Left Column ──
-    with col_left:
-        render_left_panel(_session_logger)
+# ── Left Column: Detection Activity ──
+with col_left:
+    render_left_panel(_session_logger)
 
-    # ── Main Column ──
-    with col_main:
-        # We store webrtc_ctx to use below, outside the context manager
-        webrtc_ctx = webrtc_streamer(
-            key="yolo-face-detection",
-            mode=WebRtcMode.SENDRECV,
-            rtc_configuration=RTC_CONFIGURATION,
-            video_processor_factory=YOLOVideoProcessor,
-            media_stream_constraints={
-                "video": {
-                    "width": {"ideal": 640},
-                    "height": {"ideal": 480},
-                    "frameRate": {"ideal": 15, "max": 20},
-                },
-                "audio": False,
+# ── Main Column: Video Feed ──
+with col_main:
+    webrtc_ctx = webrtc_streamer(
+        key="yolo-face-detection",
+        mode=WebRtcMode.SENDRECV,
+        rtc_configuration=RTC_CONFIGURATION,
+        video_processor_factory=YOLOVideoProcessor,
+        media_stream_constraints={
+            "video": {
+                "width": {"ideal": 640},
+                "height": {"ideal": 480},
+                "frameRate": {"ideal": 15, "max": 20},
             },
-            async_processing=True,
+            "audio": False,
+        },
+        async_processing=True,
+    )
+
+    if webrtc_ctx.state.playing:
+        st.markdown(
+            '<div style="text-align:right; margin-top:-0.5rem;">'
+            '<span class="status-badge live">LIVE</span></div>',
+            unsafe_allow_html=True,
+        )
+        st.session_state["is_active"] = True
+    else:
+        st.session_state["is_active"] = False
+
+    if not st.session_state["is_active"]:
+        render_empty_state()
+
+    # Bottom metrics row
+    render_metrics_row(_fps_tracker, _session_logger)
+
+    # Download button
+    if _session_logger.total_entries > 0:
+        st.download_button(
+            label="Download Session Logs (CSV)",
+            data=_session_logger.to_csv(),
+            file_name="omnisight_logs.csv",
+            mime="text/csv",
+            key="download_csv",
         )
 
-        # Top-right status badge indicating stream state
-        if webrtc_ctx.state.playing:
-            st.markdown('<div style="text-align:right; margin-top: -1.5rem;"><span class="status-badge live">LIVE</span></div>', unsafe_allow_html=True)
-            st.session_state["is_active"] = True
-        else:
-            st.session_state["is_active"] = False
+# ── Right Column: Settings ──
+with col_right:
+    privacy_mode = render_right_panel(_detector.model_info)
 
-        # If not active, show empty state inside the main col
-        if not st.session_state["is_active"]:
-            render_empty_state()
-
-        # Metrics Row placed under the video player
-        render_metrics_row(_fps_tracker, _session_logger)
-        
-        # Download button
-        if _session_logger.total_entries > 0:
-            st.download_button(
-                label="Download Session Logs (CSV)",
-                data=_session_logger.to_csv(),
-                file_name="Sentinalface_logs.csv",
-                mime="text/csv",
-                key="download_csv",
-            )
-
-    # ── Right Column ──
-    with col_right:
-        privacy_mode = render_right_panel(_detector.model_info)
-
-
-# ─── Sync Settings ───────────────────────────────────────────────────────────
-if webrtc_ctx and webrtc_ctx.video_processor:
+# ─── Sync Privacy Mode ───────────────────────────────────────────────────────
+if webrtc_ctx.video_processor:
     webrtc_ctx.video_processor.privacy_mode = privacy_mode
-
-with tab1:
-    st.info("Dashboard overview (Placeholder)")
-
-with tab3:
-    st.info("Advanced analytics (Placeholder)")
-
-with tab4:
-    st.info("System settings (Placeholder)")
