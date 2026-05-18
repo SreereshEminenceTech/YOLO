@@ -38,7 +38,7 @@ def get_shared_fps_tracker():
 def get_shared_logger():
     return SessionLogger(throttle_interval=1.0)
 
-@st.cache_resource(show_spinner=False)
+@st.cache_resource(show_spinner="Booting OmniSight AI Engine (this takes a few seconds)...")
 def load_detector():
     """Load and cache the YOLO face detector model."""
     return FaceDetector(
@@ -110,31 +110,15 @@ class YOLOVideoProcessor(VideoProcessorBase):
 
 
 # ─── WebRTC Configuration ────────────────────────────────────────────────────
-import os
-from streamlit_webrtc import get_twilio_ice_servers
-
-# Fetch Twilio credentials from Streamlit Secrets (Required for Streamlit Cloud deployment)
-try:
-    TWILIO_ACCOUNT_SID = st.secrets["TWILIO_ACCOUNT_SID"]
-    TWILIO_AUTH_TOKEN = st.secrets["TWILIO_AUTH_TOKEN"]
-except KeyError:
-    TWILIO_ACCOUNT_SID = ""
-    TWILIO_AUTH_TOKEN = ""
-
-try:
-    # Dynamically generate ICE servers from Twilio (provides highly reliable STUN/TURN)
-    RTC_CONFIGURATION = {
-        "iceServers": get_twilio_ice_servers(
-            account_sid=TWILIO_ACCOUNT_SID,
-            auth_token=TWILIO_AUTH_TOKEN,
-        )
-    }
-except Exception as e:
-    st.error(f"Failed to fetch Twilio ICE servers: {e}")
-    # Fallback to standard Google STUN if Twilio fails
-    RTC_CONFIGURATION = {
-        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
-    }
+RTC_CONFIGURATION = {
+    "iceServers": [
+        {"urls": ["stun:stun.l.google.com:19302"]},
+        {"urls": ["stun:stun1.l.google.com:19302"]},
+        {"urls": ["stun:stun2.l.google.com:19302"]},
+        {"urls": ["stun:stun3.l.google.com:19302"]},
+        {"urls": ["stun:stun4.l.google.com:19302"]},
+    ]
+}
 
 
 # ─── App Header ───────────────────────────────────────────────────────────────
