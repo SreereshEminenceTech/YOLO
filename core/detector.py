@@ -95,6 +95,7 @@ class FaceDetector:
                     self._model_type = "ultralytics"
                     self._class_names = self._model.names
                     print(f"✅ Loaded Ultralytics model: {path}")
+                    self._warmup()
                     return
                 except Exception as e:
                     print(f"⚠️  .pt load failed ({path}): {e}")
@@ -102,6 +103,13 @@ class FaceDetector:
         raise RuntimeError(
             "Could not load custom YOLO face model. Ensure best.pt is in the models/ directory."
         )
+
+    def _warmup(self):
+        """Run a dummy inference to initialize the compute graph and prevent WebRTC timeouts on the first frame."""
+        print("🔥 Warming up model...")
+        dummy_frame = np.zeros((self.input_size, self.input_size, 3), dtype=np.uint8)
+        self.detect_faces(dummy_frame)
+        print("✅ Model warmup complete.")
 
     @property
     def model_info(self) -> str:
