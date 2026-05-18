@@ -27,8 +27,8 @@ from ui.components import render_left_panel, render_right_panel, render_metrics_
 
 # ─── Page Configuration ───────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="OmniSight Face Detection",
-    page_icon="👁️",
+    page_title="SentinalFace_Detection",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items={
@@ -140,7 +140,7 @@ RTC_CONFIGURATION = {
 st.markdown(
     """
     <div class="app-header">
-        <h1>OmniSight Face Detection</h1>
+        <h1>SentinalFace Detection</h1>
         <p>Enterprise Real-time Face Detection Platform</p>
     </div>
     """,
@@ -197,7 +197,7 @@ with tab2:
             st.download_button(
                 label="Download Session Logs (CSV)",
                 data=_session_logger.to_csv(),
-                file_name="omnisight_logs.csv",
+                file_name="Sentinalface_logs.csv",
                 mime="text/csv",
                 key="download_csv",
             )
