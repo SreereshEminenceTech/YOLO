@@ -14,10 +14,9 @@ from ui.styles import inject_styles
 from ui.components import render_left_panel, render_right_panel, render_metrics_row, render_empty_state
 
 
-# ─── Page Configuration ───────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="OmniSight Face Detection",
-    page_icon="👁️",
+    page_title="SentinalFace Face Detection",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="collapsed",
     menu_items={
@@ -25,11 +24,9 @@ st.set_page_config(
     },
 )
 
-# ─── Inject Custom CSS ───────────────────────────────────────────────────────
 inject_styles()
 
 
-# ─── Module-Level Shared Objects ──────────────────────────────────────────────
 @st.cache_resource
 def get_shared_fps_tracker():
     return FPSTracker(window_size=30)
@@ -38,7 +35,7 @@ def get_shared_fps_tracker():
 def get_shared_logger():
     return SessionLogger(throttle_interval=1.0)
 
-@st.cache_resource(show_spinner="Booting OmniSight AI Engine (this takes a few seconds)...")
+@st.cache_resource(show_spinner="Booting SentinalFace AI Engine (this takes a few seconds)...")
 def load_detector():
     """Load and cache the YOLO face detector model."""
     return FaceDetector(
@@ -54,12 +51,10 @@ _session_logger = get_shared_logger()
 _detector = load_detector()
 
 
-# ─── Session State ────────────────────────────────────────────────────────────
 if "is_active" not in st.session_state:
     st.session_state["is_active"] = False
 
 
-# ─── Video Processor ─────────────────────────────────────────────────────────
 class YOLOVideoProcessor(VideoProcessorBase):
     """
     WebRTC video processor that runs YOLO face detection on every frame.
@@ -109,7 +104,6 @@ class YOLOVideoProcessor(VideoProcessorBase):
         return av.VideoFrame.from_ndarray(annotated, format="bgr24")
 
 
-# ─── WebRTC Configuration ────────────────────────────────────────────────────
 RTC_CONFIGURATION = {
     "iceServers": [
         {"urls": ["stun:stun.l.google.com:19302"]},
@@ -121,11 +115,10 @@ RTC_CONFIGURATION = {
 }
 
 
-# ─── App Header ───────────────────────────────────────────────────────────────
 st.markdown(
     """
     <div class="app-header">
-        <h1>OmniSight Face Detection</h1>
+        <h1>SentinalFace Face Detection</h1>
         <p>Enterprise Real-time Face Detection Platform</p>
     </div>
     """,
@@ -133,14 +126,11 @@ st.markdown(
 )
 
 
-# ─── 3-Column Layout ─────────────────────────────────────────────────────────
 col_left, col_main, col_right = st.columns([1, 2.5, 1], gap="medium")
 
-# ── Left Column: Detection Activity ──
 with col_left:
     render_left_panel(_session_logger)
 
-# ── Main Column: Video Feed ──
 with col_main:
     webrtc_ctx = webrtc_streamer(
         key="yolo-face-detection",
@@ -172,15 +162,13 @@ with col_main:
         st.download_button(
             label="Download Session Logs (CSV)",
             data=_session_logger.to_csv(),
-            file_name="omnisight_logs.csv",
+            file_name="SentinalFace_logs.csv",
             mime="text/csv",
             key="download_csv",
         )
 
-# ── Right Column: Settings ──
 with col_right:
     privacy_mode = render_right_panel(_detector.model_info)
 
-# ─── Sync Privacy Mode ───────────────────────────────────────────────────────
 if webrtc_ctx.video_processor:
     webrtc_ctx.video_processor.privacy_mode = privacy_mode

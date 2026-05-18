@@ -6,7 +6,6 @@ from typing import List, Optional
 from pathlib import Path
 
 
-# ─── Detection Result ─────────────────────────────────────────────────────────
 
 @dataclass
 class Detection:
@@ -17,7 +16,6 @@ class Detection:
     class_id: int         
 
 
-# ─── Color Palette for Bounding Boxes ─────────────────────────────────────────
 
 COLORS = [
     (124, 107, 255),  
@@ -29,7 +27,6 @@ COLORS = [
 ]
 
 
-# ─── Face Detector Class ─────────────────────────────────────────────────────
 
 class FaceDetector:
 
@@ -60,7 +57,6 @@ class FaceDetector:
     def _load_model(self):
         """Load the YOLO model (ONNX preferred, .pt fallback)."""
 
-        # ── Strategy 1: Try ONNX model ────────────────────────────────────────
         onnx_paths = [
             self._model_path,
             os.path.join(os.path.dirname(__file__), "..", "models", "yolov8n_face.onnx"),
@@ -76,12 +72,11 @@ class FaceDetector:
                         providers=["CPUExecutionProvider"],
                     )
                     self._model_type = "onnx"
-                    print(f"✅ Loaded ONNX model: {path}")
+                    print(f" Loaded ONNX model: {path}")
                     return
                 except Exception as e:
-                    print(f"⚠️  ONNX load failed ({path}): {e}")
+                    print(f"  ONNX load failed ({path}): {e}")
 
-        # ── Strategy 2: Try .pt model with Ultralytics ────────────────────────
         pt_paths = [
             self._model_path,
             os.path.join(os.path.dirname(__file__), "..", "models", "best_v2.pt"),
@@ -94,11 +89,11 @@ class FaceDetector:
                     self._model = YOLO(path)
                     self._model_type = "ultralytics"
                     self._class_names = self._model.names
-                    print(f"✅ Loaded Ultralytics model: {path}")
+                    print(f" Loaded Ultralytics model: {path}")
                     self._warmup()
                     return
                 except Exception as e:
-                    print(f"⚠️  .pt load failed ({path}): {e}")
+                    print(f"  .pt load failed ({path}): {e}")
 
         raise RuntimeError(
             "Could not load custom YOLO face model. Ensure best.pt is in the models/ directory."
@@ -106,10 +101,10 @@ class FaceDetector:
 
     def _warmup(self):
         """Run a dummy inference to initialize the compute graph and prevent WebRTC timeouts on the first frame."""
-        print("🔥 Warming up model...")
+        print(" Warming up model...")
         dummy_frame = np.zeros((self.input_size, self.input_size, 3), dtype=np.uint8)
         self.detect_faces(dummy_frame)
-        print("✅ Model warmup complete.")
+        print(" Model warmup complete.")
 
     @property
     def model_info(self) -> str:
@@ -120,7 +115,6 @@ class FaceDetector:
             return "YOLOv8n (Ultralytics)"
         return "Unknown"
 
-    # ─── Core Detection ───────────────────────────────────────────────────────
 
     def detect_faces(self, frame: np.ndarray) -> List[Detection]:
         """
@@ -275,7 +269,6 @@ class FaceDetector:
         indices = indices.flatten()
         return [detections[i] for i in indices]
 
-    # ─── Frame Annotation ─────────────────────────────────────────────────────
 
     def annotate_frame(
         self,
@@ -305,17 +298,14 @@ class FaceDetector:
             conf_pct = f"{det.confidence:.0%}"
             label = f"{det.class_name} {conf_pct}"
 
-            # ── Privacy blur ──────────────────────────────────────────────────
             if privacy_mode:
                 face_roi = annotated[max(0, y1):min(h, y2), max(0, x1):min(w, x2)]
                 if face_roi.size > 0:
                     blurred = cv2.GaussianBlur(face_roi, (99, 99), 30)
                     annotated[max(0, y1):min(h, y2), max(0, x1):min(w, x2)] = blurred
 
-            # ── Bounding box ──────────────────────────────────────────────────
             cv2.rectangle(annotated, (x1, y1), (x2, y2), color, 2)
 
-            # ── Confidence bar (small bar above the box) ──────────────────────
             bar_width = x2 - x1
             bar_filled = int(bar_width * det.confidence)
             bar_y = max(0, y1 - 8)
@@ -324,7 +314,6 @@ class FaceDetector:
             cv2.rectangle(annotated, (x1, bar_y), (x1 + bar_filled, bar_y + 5),
                           color, -1)
 
-            # ── Label background ──────────────────────────────────────────────
             (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 1)
             label_y = max(0, bar_y - 4)
             cv2.rectangle(annotated, (x1, label_y - th - 6), (x1 + tw + 10, label_y),
@@ -333,12 +322,10 @@ class FaceDetector:
                         cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1,
                         cv2.LINE_AA)
 
-        # ── Face count overlay (top-left) ─────────────────────────────────────
         count_text = f"Faces: {len(detections)}"
         cv2.putText(annotated, count_text, (12, 32),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.85, (0, 229, 255), 2, cv2.LINE_AA)
 
-        # ── FPS overlay (top-right) ───────────────────────────────────────────
         if show_fps > 0:
             fps_text = f"FPS: {show_fps:.1f}"
             (tw, _), _ = cv2.getTextSize(fps_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)

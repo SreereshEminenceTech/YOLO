@@ -9,7 +9,6 @@ import io, time
 
 model = YOLO("/content/drive/MyDrive/face-recognition/runs/yolov8n_faces/weights/best_v2.pt")
 
-# ── Single JS block: camera + frame capture all in one persistent scope ────────
 def setup_camera_js():
     display(Javascript('''
         // Global camera setup — persists across eval_js calls
@@ -42,7 +41,7 @@ def setup_camera_js():
             // Status text
             const status = document.createElement('p');
             status.id        = 'yolo_status';
-            status.innerText = '⏳ Requesting camera...';
+            status.innerText = ' Requesting camera...';
             div.appendChild(status);
 
             try {
@@ -63,12 +62,12 @@ def setup_camera_js():
                 await new Promise(r => setTimeout(r, 2000)); // warm-up
 
                 window._cameraReady    = true;
-                status.innerText       = '✅ Camera ready — Python will now capture frames';
+                status.innerText       = ' Camera ready — Python will now capture frames';
                 status.style.color     = 'green';
                 console.log('Camera ready:', video.videoWidth, 'x', video.videoHeight);
 
             } catch(err) {
-                status.innerText   = '❌ Camera error: ' + err;
+                status.innerText   = ' Camera error: ' + err;
                 status.style.color = 'red';
                 window._cameraReady = false;
                 console.error(err);
@@ -76,7 +75,6 @@ def setup_camera_js():
         })();
     '''))
 
-# ── Capture using the persistent window._webcamVideo reference ─────────────────
 CAPTURE_JS = '''
 (function() {
     const video = window._webcamVideo;
@@ -107,23 +105,21 @@ def capture_frame():
         raise ValueError("cv2 decode failed")
     return frame
 
-# ── Wait for camera ready flag ─────────────────────────────────────────────────
 def wait_for_camera(timeout=25):
     print("Waiting for camera", end="")
     for _ in range(timeout * 2):
         try:
             ready = eval_js("window._cameraReady === true ? '1' : '0'")
             if ready == '1':
-                print(" ✅\n")
+                print(" \n")
                 return True
         except:
             pass
         print(".", end="", flush=True)
         time.sleep(0.5)
-    print("\n❌ Timed out. Check browser camera permission.")
+    print("\n Timed out. Check browser camera permission.")
     return False
 
-# ── YOLO detection + drawing ───────────────────────────────────────────────────
 COLORS = [(255,56,56),(56,255,56),(56,56,255),(255,200,56),(255,56,200),(56,255,200)]
 
 def run_detection(frame, conf=0.4):
@@ -149,7 +145,6 @@ def to_display(frame):
     PIL.Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)).save(buf, 'JPEG', quality=85)
     return Image(data=buf.getvalue())
 
-# ── Main detection loop ────────────────────────────────────────────────────────
 from IPython.display import clear_output
 
 def run_live_detection(num_frames=300, conf=0.4, fps_limit=8):
@@ -172,9 +167,9 @@ def run_live_detection(num_frames=300, conf=0.4, fps_limit=8):
 
         except Exception as e:
             error_streak += 1
-            print(f"⚠️  Frame error ({error_streak}): {e}")
+            print(f"  Frame error ({error_streak}): {e}")
             if error_streak >= 15:
-                print("❌ Too many errors — stopping.")
+                print(" Too many errors — stopping.")
                 break
             time.sleep(0.3)
             continue
@@ -190,7 +185,6 @@ def run_live_detection(num_frames=300, conf=0.4, fps_limit=8):
         const d = document.getElementById('yolo_cam_div');
         if (d) d.remove();
     ''')
-    print("\n✅ Detection complete — camera stopped.")
+    print("\n Detection complete — camera stopped.")
 
-# ── RUN ───────────────────────────────────────────────────────────────────────
 run_live_detection(num_frames=300, conf=0.4, fps_limit=8)

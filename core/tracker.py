@@ -14,7 +14,6 @@ from typing import List, Optional
 import pandas as pd
 
 
-# ─── FPS Tracker ──────────────────────────────────────────────────────────────
 
 class FPSTracker:
     """
@@ -57,7 +56,6 @@ class FPSTracker:
             self._timestamps.clear()
 
 
-# ─── Session Logger ───────────────────────────────────────────────────────────
 
 class SessionLogger:
     """

@@ -1,16 +1,16 @@
-# 👁️ YOLO Face Detection — Streamlit App
+#  YOLO Face Detection — Streamlit App
 
 Real-time multi-face detection powered by **YOLOv8** and **Streamlit WebRTC**.
 
 ## Features
 
-- 🎥 **Live Webcam Detection** — Real-time face detection via browser webcam
-- 📊 **FPS Tracking** — Smoothed rolling-average FPS counter
-- 👥 **Multi-Face Handling** — Detects and scores all visible faces simultaneously
-- 🔒 **Privacy Mode** — Toggle face blurring while still counting detections
-- 📋 **Session Logging** — Timestamped detection log with confidence and FPS
-- ⬇️ **CSV Export** — Download session data for analysis
-- 🎨 **Premium Dark UI** — Glassmorphism dashboard with live metrics
+-  **Live Webcam Detection** — Real-time face detection via browser webcam
+-  **FPS Tracking** — Smoothed rolling-average FPS counter
+-  **Multi-Face Handling** — Detects and scores all visible faces simultaneously
+-  **Privacy Mode** — Toggle face blurring while still counting detections
+-  **Session Logging** — Timestamped detection log with confidence and FPS
+-  **CSV Export** — Download session data for analysis
+-  **Premium Dark UI** — Glassmorphism dashboard with live metrics
 
 ## Quick Start (Local)
 
