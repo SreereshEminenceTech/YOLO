@@ -7,7 +7,7 @@ from ultralytics import YOLO
 import PIL.Image
 import io, time
 
-model = YOLO("/content/drive/MyDrive/face-recognition/runs/yolov8n_faces/weights/best.pt")
+model = YOLO("/content/drive/MyDrive/face-recognition/runs/yolov8n_faces/weights/best_v2.pt")
 
 # ── Single JS block: camera + frame capture all in one persistent scope ────────
 def setup_camera_js():

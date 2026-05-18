@@ -84,8 +84,7 @@ class FaceDetector:
         # ── Strategy 2: Try .pt model with Ultralytics ────────────────────────
         pt_paths = [
             self._model_path,
-            os.path.join(os.path.dirname(__file__), "..", "models", "best.pt"),
-            os.path.join(os.path.dirname(__file__), "..", "models", "yolov8n.pt"),
+            os.path.join(os.path.dirname(__file__), "..", "models", "best_v2.pt"),
         ]
 
         for path in pt_paths:
@@ -100,19 +99,9 @@ class FaceDetector:
                 except Exception as e:
                     print(f"⚠️  .pt load failed ({path}): {e}")
 
-        # ── Strategy 3: Download pretrained YOLOv8n ───────────────────────────
-        try:
-            from ultralytics import YOLO
-            print("⬇️  No local model found — downloading YOLOv8n...")
-            self._model = YOLO("yolov8n.pt")
-            self._model_type = "ultralytics"
-            self._class_names = self._model.names
-            print("✅ Downloaded and loaded YOLOv8n (general object detection)")
-        except Exception as e:
-            raise RuntimeError(
-                f"Could not load any YOLO model. Ensure a .pt or .onnx file "
-                f"is in the models/ directory. Error: {e}"
-            )
+        raise RuntimeError(
+            "Could not load custom YOLO face model. Ensure best.pt is in the models/ directory."
+        )
 
     @property
     def model_info(self) -> str:
