@@ -180,5 +180,5 @@ with col_main:
 with col_right:
     privacy_mode = render_right_panel(_detector.model_info)
 
-if webrtc_ctx.video_processor:
+if "webrtc_ctx" in locals() and webrtc_ctx is not None and webrtc_ctx.video_processor:
     webrtc_ctx.video_processor.privacy_mode = privacy_mode
