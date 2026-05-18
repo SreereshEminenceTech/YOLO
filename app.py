@@ -132,27 +132,37 @@ with col_left:
     render_left_panel(_session_logger)
 
 with col_main:
-    webrtc_ctx = webrtc_streamer(
-        key="yolo-face-detection",
-        mode=WebRtcMode.SENDRECV,
-        rtc_configuration=RTC_CONFIGURATION,
-        video_processor_factory=YOLOVideoProcessor,
-        media_stream_constraints={"video": True, "audio": False},
-        async_processing=True,
-    )
-
-    if webrtc_ctx.state.playing:
-        st.markdown(
-            '<div style="text-align:right; margin-top:-0.5rem;">'
-            '<span class="status-badge live">LIVE</span></div>',
-            unsafe_allow_html=True,
-        )
-        st.session_state["is_active"] = True
+    if not st.session_state.get("session_initialized", False):
+        st.markdown("### Camera Initialization")
+        st.info("To ensure a stable video stream on the cloud, please initialize your session.")
+        if st.button("Initialize Camera Session", type="primary", use_container_width=True):
+            import time
+            with st.spinner("Stabilizing cloud connection... please wait."):
+                time.sleep(2.5)  # Smart holding timer to stagger multiple users
+            st.session_state["session_initialized"] = True
+            st.rerun()
     else:
-        st.session_state["is_active"] = False
+        webrtc_ctx = webrtc_streamer(
+            key="yolo-face-detection",
+            mode=WebRtcMode.SENDRECV,
+            rtc_configuration=RTC_CONFIGURATION,
+            video_processor_factory=YOLOVideoProcessor,
+            media_stream_constraints={"video": True, "audio": False},
+            async_processing=True,
+        )
 
-    if not st.session_state["is_active"]:
-        render_empty_state()
+        if webrtc_ctx.state.playing:
+            st.markdown(
+                '<div style="text-align:right; margin-top:-0.5rem;">'
+                '<span class="status-badge live">LIVE</span></div>',
+                unsafe_allow_html=True,
+            )
+            st.session_state["is_active"] = True
+        else:
+            st.session_state["is_active"] = False
+
+        if not st.session_state["is_active"]:
+            render_empty_state()
 
     # Bottom metrics row
     render_metrics_row(_fps_tracker, _session_logger)
