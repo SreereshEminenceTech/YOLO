@@ -1,14 +1,3 @@
-"""
-YOLO Face Detection — Streamlit App
-
-Real-time face detection via webcam using YOLOv8 + streamlit-webrtc.
-Features: multi-face detection, FPS tracking, privacy blur, session logging,
-and a clean 3-column professional UI.
-
-Usage:
-    streamlit run app.py
-"""
-
 import av
 import cv2
 import threading
@@ -121,27 +110,31 @@ class YOLOVideoProcessor(VideoProcessorBase):
 
 
 # ─── WebRTC Configuration ────────────────────────────────────────────────────
-RTC_CONFIGURATION = {
-    "iceServers": [
-        {"urls": ["stun:stun.l.google.com:19302"]},
-        {"urls": ["stun:stun1.l.google.com:19302"]},
-        {
-            "urls": "turn:openrelay.metered.ca:80",
-            "username": "openrelayproject",
-            "credential": "openrelayproject",
-        },
-        {
-            "urls": "turn:openrelay.metered.ca:443",
-            "username": "openrelayproject",
-            "credential": "openrelayproject",
-        },
-        {
-            "urls": "turn:openrelay.metered.ca:443?transport=tcp",
-            "username": "openrelayproject",
-            "credential": "openrelayproject",
-        },
-    ]
-}
+import os
+from streamlit_webrtc import get_twilio_ice_servers
+
+# Fetch Twilio credentials from Streamlit Secrets (Required for Streamlit Cloud deployment)
+try:
+    TWILIO_ACCOUNT_SID = st.secrets["TWILIO_ACCOUNT_SID"]
+    TWILIO_AUTH_TOKEN = st.secrets["TWILIO_AUTH_TOKEN"]
+except KeyError:
+    TWILIO_ACCOUNT_SID = ""
+    TWILIO_AUTH_TOKEN = ""
+
+try:
+    # Dynamically generate ICE servers from Twilio (provides highly reliable STUN/TURN)
+    RTC_CONFIGURATION = {
+        "iceServers": get_twilio_ice_servers(
+            account_sid=TWILIO_ACCOUNT_SID,
+            auth_token=TWILIO_AUTH_TOKEN,
+        )
+    }
+except Exception as e:
+    st.error(f"Failed to fetch Twilio ICE servers: {e}")
+    # Fallback to standard Google STUN if Twilio fails
+    RTC_CONFIGURATION = {
+        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+    }
 
 
 # ─── App Header ───────────────────────────────────────────────────────────────
